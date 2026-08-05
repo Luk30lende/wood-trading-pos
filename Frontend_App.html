@@ -1,19 +1,71 @@
 <script type="text/babel">
+  function Header() {
+    return (
+      <header className="header">
+        <div className="logo">🌲 Wood Trading POS</div>
+
+        <div className="header-right">Version 0.1.0</div>
+      </header>
+    );
+  }
+
+  function Sidebar() {
+    const menu = [
+      "📊 Dashboard",
+      "🌲 Inventory",
+      "🛒 Sales",
+      "🚚 Purchases",
+      "👥 Customers",
+      "🏢 Suppliers",
+      "💰 Payments",
+      "💸 Expenses",
+      "📈 Reports",
+      "⚙️ Settings",
+      "ℹ️ About",
+    ];
+
+    return (
+      <aside className="sidebar">
+        {menu.map((item) => (
+          <div key={item} className="menu-item">
+            {item}
+          </div>
+        ))}
+      </aside>
+    );
+  }
+
+  function Main({ children }) {
+    return <main className="main-content">{children}</main>;
+  }
+
+  function Footer() {
+    return <footer className="footer">© 2026 Wood Trading POS</footer>;
+  }
+
+  function Layout({ children }) {
+    return (
+      <div className="layout">
+        <Header />
+
+        <div className="content">
+          <Sidebar />
+
+          <Main>{children}</Main>
+        </div>
+
+        <Footer />
+      </div>
+    );
+  }
+
   function App() {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          flexDirection: "column",
-        }}
-      >
-        <h1>🌲 Wood Trading POS</h1>
+      <Layout>
+        <h1>📊 Dashboard</h1>
 
-        <p>React is successfully running inside Google Apps Script.</p>
-      </div>
+        <p>Welcome to the Wood Trading POS System.</p>
+      </Layout>
     );
   }
 
