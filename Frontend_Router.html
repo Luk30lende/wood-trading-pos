@@ -1,0 +1,161 @@
+<script type="text/babel">
+  /**
+   * =====================================================
+   * Application Routes
+   * =====================================================
+   */
+
+  const ROUTES = {
+    dashboard: {
+      order: 1,
+      title: "Dashboard",
+      icon: "📊",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: DashboardPage,
+    },
+
+    inventory: {
+      order: 2,
+      title: "Inventory",
+      icon: "🌲",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: InventoryPage,
+    },
+
+    sales: {
+      order: 3,
+      title: "Sales",
+      icon: "🛒",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: SalesPage,
+    },
+
+    purchases: {
+      order: 4,
+      title: "Purchases",
+      icon: "🚚",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: PurchasesPage,
+    },
+
+    customers: {
+      order: 5,
+      title: "Customers",
+      icon: "👥",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: CustomersPage,
+    },
+
+    suppliers: {
+      order: 6,
+      title: "Suppliers",
+      icon: "🏢",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: SuppliersPage,
+    },
+
+    payments: {
+      order: 7,
+      title: "Payments",
+      icon: "💰",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: PaymentsPage,
+    },
+
+    expenses: {
+      order: 8,
+      title: "Expenses",
+      icon: "💸",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: ExpensesPage,
+    },
+
+    reports: {
+      order: 9,
+      title: "Reports",
+      icon: "📈",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: ReportsPage,
+    },
+
+    settings: {
+      order: 10,
+      title: "Settings",
+      icon: "⚙️",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: SettingsPage,
+    },
+
+    about: {
+      order: 11,
+      title: "About",
+      icon: "ℹ️",
+      roles: ["admin", "manager", "cashier", "warehouse_staff"],
+      component: AboutPage,
+    },
+  };
+
+  /**
+   * Returns the current hash route.
+   */
+  function getCurrentRoute() {
+    const hash = window.location.hash.replace("#/", "");
+
+    return ROUTES[hash] ? hash : "dashboard";
+  }
+
+  /**
+   * Provides the current application route
+   * and automatically updates when the URL hash changes.
+   */
+  function useCurrentRoute() {
+    const [route, setRoute] = React.useState(getCurrentRoute());
+
+    React.useEffect(() => {
+      function handleHashChange() {
+        setRoute(getCurrentRoute());
+      }
+
+      window.addEventListener("hashchange", handleHashChange);
+
+      return () => {
+        window.removeEventListener("hashchange", handleHashChange);
+      };
+    }, []);
+
+    return route;
+  }
+
+  /**
+   * Router Component
+   */
+  /**
+   * Renders the page associated with the current route.
+   */
+  function Router() {
+    const route = useCurrentRoute();
+
+    const CurrentPage = ROUTES[route].component;
+
+    return <CurrentPage />;
+  }
+  // function Router() {
+  //   const [route, setRoute] = React.useState(getCurrentRoute());
+
+  //   React.useEffect(() => {
+  //     function handleHashChange() {
+  //       setRoute(getCurrentRoute());
+  //     }
+
+  //     window.addEventListener("hashchange", handleHashChange);
+
+  //     return () => {
+  //       window.removeEventListener("hashchange", handleHashChange);
+  //     };
+  //   }, []);
+
+  //   const CurrentPage = ROUTES[route].component;
+
+  //   return <CurrentPage />;
+  // }
+</script>

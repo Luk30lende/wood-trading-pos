@@ -1,0 +1,65 @@
+<script type="text/babel">
+  function Header() {
+    return (
+      <header className="header">
+        <div className="logo">🌲 Wood Trading POS</div>
+
+        <div className="header-right">Version 0.1.0</div>
+      </header>
+    );
+  }
+
+  /**
+   * Renders the application sidebar.
+   */
+  function Sidebar() {
+    const routes = Object.entries(ROUTES).sort(
+      ([, a], [, b]) => a.order - b.order,
+    );
+
+    const currentRoute = useCurrentRoute();
+
+    return (
+      <aside className="sidebar">
+        {routes.map(([routeId, route]) => (
+          <div
+            key={routeId}
+            className={
+              "menu-item" + (currentRoute === routeId ? " active" : "")
+            }
+            onClick={() => {
+              window.location.hash = "#/" + routeId;
+            }}
+          >
+            <span>{route.icon}</span>
+            <span style={{ marginLeft: "10px" }}>{route.title}</span>
+          </div>
+        ))}
+      </aside>
+    );
+  }
+
+  function Main({ children }) {
+    return <main className="main-content">{children}</main>;
+  }
+
+  function Footer() {
+    return <footer className="footer">© 2026 Wood Trading POS</footer>;
+  }
+
+  function Layout({ children }) {
+    return (
+      <div className="layout">
+        <Header />
+
+        <div className="content">
+          <Sidebar />
+
+          <Main>{children}</Main>
+        </div>
+
+        <Footer />
+      </div>
+    );
+  }
+</script>
