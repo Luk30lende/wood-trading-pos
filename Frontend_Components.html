@@ -68,4 +68,60 @@
       </span>
     );
   }
+
+  /**
+   * Reusable Input component.
+   *
+   * @param {Object} props
+   * @param {string} props.label - Input label.
+   * @param {string} props.name - Input name.
+   * @param {string} props.type - Input type.
+   * @param {string|number} props.value - Current value.
+   * @param {string} props.placeholder - Placeholder text.
+   * @param {boolean} props.required - Required state.
+   * @param {boolean} props.disabled - Disabled state.
+   * @param {string} props.error - Validation error message.
+   * @param {string} props.helpText - Optional helper text.
+   * @param {Function} props.onChange - Change handler.
+   */
+  function Input({
+    label,
+    name,
+    type = "text",
+    value = "",
+    placeholder = "",
+    required = false,
+    disabled = false,
+    error = "",
+    helpText = "",
+    onChange,
+  }) {
+    return (
+      <div className="ui-form-group">
+        {label && (
+          <label className="ui-form-label" htmlFor={name}>
+            {label}
+
+            {required && <span className="ui-required">*</span>}
+          </label>
+        )}
+
+        <input
+          id={name}
+          name={name}
+          type={type}
+          value={value}
+          placeholder={placeholder}
+          required={required}
+          disabled={disabled}
+          className={"ui-input" + (error ? " ui-input-error" : "")}
+          onChange={onChange}
+        />
+
+        {error && <div className="ui-form-error">{error}</div>}
+
+        {!error && helpText && <div className="ui-form-help">{helpText}</div>}
+      </div>
+    );
+  }
 </script>
