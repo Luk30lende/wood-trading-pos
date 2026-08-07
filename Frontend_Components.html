@@ -27,4 +27,45 @@
       </button>
     );
   }
+
+  /**
+   * Reusable Card component.
+   *
+   * @param {Object} props
+   * @param {React.ReactNode} props.children - Card content.
+   * @param {string} props.title - Optional card title.
+   * @param {React.ReactNode} props.actions - Optional header actions.
+   * @param {string} props.className - Optional additional CSS classes.
+   */
+  function Card({ children, title, actions, className = "" }) {
+    return (
+      <section className={`ui-card ${className}`}>
+        {(title || actions) && (
+          <div className="ui-card-header">
+            {title && <h3 className="ui-card-title">{title}</h3>}
+
+            {actions && <div className="ui-card-actions">{actions}</div>}
+          </div>
+        )}
+
+        <div className="ui-card-body">{children}</div>
+      </section>
+    );
+  }
+
+  /**
+   * Reusable Badge component.
+   *
+   * @param {Object} props
+   * @param {React.ReactNode} props.children - Badge content.
+   * @param {string} props.variant - Semantic badge variant.
+   * @param {string} props.size - Badge size.
+   */
+  function Badge({ children, variant = "neutral", size = "medium" }) {
+    return (
+      <span className={`ui-badge ui-badge-${variant} ui-badge-${size}`}>
+        {children}
+      </span>
+    );
+  }
 </script>

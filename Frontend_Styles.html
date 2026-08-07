@@ -206,4 +206,130 @@
 
     color: white;
   }
+
+  /* =====================================================
+   Reusable Card Component
+   ===================================================== */
+
+  .ui-card {
+    background: white;
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+    overflow: hidden;
+  }
+
+  .ui-card-header {
+    min-height: 56px;
+
+    padding: 16px 20px;
+
+    border-bottom: 1px solid var(--border);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 16px;
+  }
+
+  .ui-card-title {
+    margin: 0;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    color: var(--text);
+  }
+
+  .ui-card-actions {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+  }
+
+  .ui-card-body {
+    padding: 20px;
+  }
+
+  /* =====================================================
+   Reusable Badge Component
+   ===================================================== */
+
+  .ui-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 999px;
+
+    font-weight: 600;
+
+    line-height: 1;
+
+    white-space: nowrap;
+  }
+
+  /* Sizes */
+
+  .ui-badge-small {
+    padding: 5px 8px;
+
+    font-size: 11px;
+  }
+
+  .ui-badge-medium {
+    padding: 6px 10px;
+
+    font-size: 12px;
+  }
+
+  .ui-badge-large {
+    padding: 8px 12px;
+
+    font-size: 13px;
+  }
+
+  /* Variants */
+
+  .ui-badge-neutral {
+    background: #eef1f4;
+
+    color: #495057;
+  }
+
+  .ui-badge-primary {
+    background: #dcecff;
+
+    color: var(--primary);
+  }
+
+  .ui-badge-success {
+    background: #dff5e7;
+
+    color: #18733a;
+  }
+
+  .ui-badge-warning {
+    background: #fff1cc;
+
+    color: #8a5a00;
+  }
+
+  .ui-badge-danger {
+    background: #fde2e2;
+
+    color: #a52828;
+  }
 </style>
