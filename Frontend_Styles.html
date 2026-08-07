@@ -125,4 +125,85 @@
 
     color: var(--text-light);
   }
+
+  /* =====================================================
+   Reusable Button Component
+   ===================================================== */
+
+  .ui-button {
+    border: none;
+
+    border-radius: var(--radius);
+
+    cursor: pointer;
+
+    font-family: inherit;
+
+    font-weight: 600;
+
+    transition:
+      background 0.2s ease,
+      transform 0.1s ease,
+      opacity 0.2s ease;
+  }
+
+  .ui-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  .ui-button:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .ui-button:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.6;
+  }
+
+  /* Sizes */
+
+  .ui-button-small {
+    padding: 7px 12px;
+
+    font-size: 13px;
+  }
+
+  .ui-button-medium {
+    padding: 10px 16px;
+
+    font-size: 14px;
+  }
+
+  .ui-button-large {
+    padding: 13px 20px;
+
+    font-size: 16px;
+  }
+
+  /* Variants */
+
+  .ui-button-primary {
+    background: var(--primary);
+
+    color: white;
+  }
+
+  .ui-button-secondary {
+    background: #e9eef4;
+
+    color: var(--primary);
+  }
+
+  .ui-button-success {
+    background: var(--success);
+
+    color: white;
+  }
+
+  .ui-button-danger {
+    background: var(--danger);
+
+    color: white;
+  }
 </style>

@@ -1,0 +1,30 @@
+<script type="text/babel">
+  /**
+   * Reusable Button component.
+   *
+   * @param {Object} props
+   * @param {React.ReactNode} props.children - Button content.
+   * @param {Function} props.onClick - Click handler.
+   * @param {string} props.variant - Button style variant.
+   * @param {string} props.size - Button size.
+   * @param {boolean} props.disabled - Disabled state.
+   */
+  function Button({
+    children,
+    onClick,
+    variant = "primary",
+    size = "medium",
+    disabled = false,
+  }) {
+    return (
+      <button
+        type="button"
+        className={`ui-button ui-button-${variant} ui-button-${size}`}
+        onClick={onClick}
+        disabled={disabled}
+      >
+        {children}
+      </button>
+    );
+  }
+</script>
