@@ -124,4 +124,66 @@
       </div>
     );
   }
+
+  /**
+   * Reusable Select component.
+   *
+   * @param {Object} props
+   * @param {string} props.label - Select label.
+   * @param {string} props.name - Select name.
+   * @param {string} props.value - Current selected value.
+   * @param {Array} props.options - Select options.
+   * @param {string} props.placeholder - Placeholder option.
+   * @param {boolean} props.required - Required state.
+   * @param {boolean} props.disabled - Disabled state.
+   * @param {string} props.error - Validation error message.
+   * @param {string} props.helpText - Optional helper text.
+   * @param {Function} props.onChange - Change handler.
+   */
+  function Select({
+    label,
+    name,
+    value = "",
+    options = [],
+    placeholder = "Select an option",
+    required = false,
+    disabled = false,
+    error = "",
+    helpText = "",
+    onChange,
+  }) {
+    return (
+      <div className="ui-form-group">
+        {label && (
+          <label className="ui-form-label" htmlFor={name}>
+            {label}
+
+            {required && <span className="ui-required">*</span>}
+          </label>
+        )}
+
+        <select
+          id={name}
+          name={name}
+          value={value}
+          required={required}
+          disabled={disabled}
+          className={"ui-select" + (error ? " ui-select-error" : "")}
+          onChange={onChange}
+        >
+          <option value="">{placeholder}</option>
+
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        {error && <div className="ui-form-error">{error}</div>}
+
+        {!error && helpText && <div className="ui-form-help">{helpText}</div>}
+      </div>
+    );
+  }
 </script>
