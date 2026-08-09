@@ -186,4 +186,21 @@
       </div>
     );
   }
+
+  /**
+   * Reusable Loader component.
+   *
+   * @param {Object} props
+   * @param {string} props.message - Optional loading message.
+   * @param {string} props.size - Loader size.
+   */
+  function Loader({ message = "Loading...", size = "medium" }) {
+    return (
+      <div className={`ui-loader ui-loader-${size}`}>
+        <div className="ui-spinner"></div>
+
+        {message && <span className="ui-loader-message">{message}</span>}
+      </div>
+    );
+  }
 </script>
