@@ -558,4 +558,64 @@
       transform: rotate(360deg);
     }
   }
+
+  /* =====================================================
+   Reusable Empty State Component
+   ===================================================== */
+
+  .ui-empty-state {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 50px 20px;
+  }
+
+  .ui-empty-state-icon {
+    font-size: 42px;
+
+    line-height: 1;
+
+    margin-bottom: 16px;
+  }
+
+  .ui-empty-state-title {
+    margin: 0;
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+    color: var(--text);
+  }
+
+  .ui-empty-state-description {
+    max-width: 450px;
+
+    margin: 8px 0 0;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+
+    color: var(--text-light);
+  }
+
+  .ui-empty-state-action {
+    margin-top: 20px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+  }
 </style>

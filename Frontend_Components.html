@@ -203,4 +203,34 @@
       </div>
     );
   }
+
+  /**
+   * Reusable EmptyState component.
+   *
+   * @param {Object} props
+   * @param {React.ReactNode} props.icon - Optional icon or emoji.
+   * @param {string} props.title - Empty state title.
+   * @param {string} props.description - Optional description.
+   * @param {React.ReactNode} props.action - Optional action element.
+   */
+  function EmptyState({
+    icon = "📭",
+    title = "No records found",
+    description = "",
+    action = null,
+  }) {
+    return (
+      <div className="ui-empty-state">
+        {icon && <div className="ui-empty-state-icon">{icon}</div>}
+
+        <h3 className="ui-empty-state-title">{title}</h3>
+
+        {description && (
+          <p className="ui-empty-state-description">{description}</p>
+        )}
+
+        {action && <div className="ui-empty-state-action">{action}</div>}
+      </div>
+    );
+  }
 </script>
