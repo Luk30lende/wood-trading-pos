@@ -327,7 +327,7 @@ const HEADERS = {
   Purchases: [
     "ID",
     "Purchase_Number",
-    "Car_ID",
+    "Shipment_ID",
     "Supplier_ID",
     "Total_Amount",
     "Paid_Amount",
@@ -343,7 +343,7 @@ const HEADERS = {
   Wood_Stocks: [
     "ID",
     "Serial_Number",
-    "Car_ID",
+    "Shipment_ID",
     "Category_ID",
     "Sub_Category_ID",
     "Width",

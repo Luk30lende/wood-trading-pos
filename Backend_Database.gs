@@ -267,3 +267,64 @@ function testDatabaseSheetLookup() {
 
   return result;
 }
+
+/**
+ * Returns all data rows from a sheet.
+ *
+ * The header row is excluded.
+ *
+ * @param {string} sheetName
+ * @returns {Array<Array>}
+ */
+function getSheetRows(sheetName) {
+  const sheet = getSheet(sheetName);
+
+  const lastRow = sheet.getLastRow();
+
+  const lastColumn = sheet.getLastColumn();
+
+  if (lastRow <= 1 || lastColumn === 0) {
+    return [];
+  }
+
+  return sheet.getRange(2, 1, lastRow - 1, lastColumn).getValues();
+}
+
+/**
+ * Returns all records from a sheet as objects.
+ *
+ * @param {string} sheetName
+ * @param {Object} columnDefinition
+ * @returns {Array<Object>}
+ */
+function getSheetObjects(sheetName, columnDefinition) {
+  const rows = getSheetRows(sheetName);
+
+  return rows.map((row) => rowToObject(row, columnDefinition));
+}
+
+/**
+ * Tests the standardized backend response system.
+ */
+function testBackendFoundation() {
+  const response = handleServerRequest(() => {
+    const spreadsheet = getDatabaseSpreadsheet();
+
+    const schema = validateDatabaseSchema();
+
+    return successResponse(
+      {
+        spreadsheetName: spreadsheet.getName(),
+
+        spreadsheetId: spreadsheet.getId(),
+
+        schema: schema,
+      },
+      "Backend foundation is working correctly.",
+    );
+  });
+
+  console.log(JSON.stringify(response, null, 2));
+
+  return response;
+}
