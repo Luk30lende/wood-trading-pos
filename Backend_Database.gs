@@ -4,6 +4,13 @@
  * =====================================================
  */
 
+const CRUD_TEST_COLUMNS = {
+  ID: 0,
+  NAME: 1,
+  STATUS: 2,
+  AMOUNT: 3,
+};
+
 /**
  * Returns the spreadsheet used as the application database.
  *
@@ -327,4 +334,257 @@ function testBackendFoundation() {
   console.log(JSON.stringify(response, null, 2));
 
   return response;
+}
+
+/**
+ * Inserts a record into a database sheet.
+ *
+ * The object keys must correspond to the configured
+ * column names in the supplied column definition.
+ *
+ * @param {string} sheetName
+ * @param {Object} columnDefinition
+ * @param {Object} record
+ * @returns {Object}
+ */
+function insertRecord(sheetName, columnDefinition, record) {
+  const sheet = getSheet(sheetName);
+
+  const columnCount = sheet.getLastColumn();
+
+  const row = new Array(columnCount).fill("");
+
+  Object.keys(columnDefinition).forEach((key) => {
+    const columnIndex = columnDefinition[key];
+
+    if (record[key] !== undefined) {
+      row[columnIndex] = record[key];
+    }
+  });
+
+  sheet.appendRow(row);
+
+  return row;
+}
+
+/**
+ * Finds a single record by ID.
+ *
+ * @param {string} sheetName
+ * @param {Object} columnDefinition
+ * @param {string} id
+ * @returns {Object|null}
+ */
+function findRecordById(sheetName, columnDefinition, id) {
+  requireValue(id, "ID");
+
+  const sheet = getSheet(sheetName);
+
+  const rows = getSheetRows(sheetName);
+
+  const idColumn = columnDefinition.ID;
+
+  for (let i = 0; i < rows.length; i++) {
+    if (String(rows[i][idColumn]) === String(id)) {
+      return rowToObject(rows[i], columnDefinition);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Finds records matching all supplied conditions.
+ *
+ * Example:
+ *
+ * findRecords(
+ *     DB.WOOD_STOCKS,
+ *     COLUMNS.WOOD_STOCKS,
+ *     {
+ *         STATUS: "available"
+ *     }
+ * );
+ *
+ * @param {string} sheetName
+ * @param {Object} columnDefinition
+ * @param {Object} conditions
+ * @returns {Array<Object>}
+ */
+function findRecords(sheetName, columnDefinition, conditions = {}) {
+  const rows = getSheetRows(sheetName);
+
+  return rows
+    .map((row) => rowToObject(row, columnDefinition))
+    .filter((record) => {
+      return Object.keys(conditions).every((key) => {
+        return String(record[key]) === String(conditions[key]);
+      });
+    });
+}
+
+/**
+ * Updates a record by ID.
+ *
+ * Only supplied fields are updated.
+ *
+ * @param {string} sheetName
+ * @param {Object} columnDefinition
+ * @param {string} id
+ * @param {Object} updates
+ * @returns {Object|null}
+ */
+function updateRecordById(sheetName, columnDefinition, id, updates) {
+  requireValue(id, "ID");
+
+  const sheet = getSheet(sheetName);
+
+  const idColumn = columnDefinition.ID;
+
+  const rows = getSheetRows(sheetName);
+
+  for (let i = 0; i < rows.length; i++) {
+    if (String(rows[i][idColumn]) === String(id)) {
+      Object.keys(updates).forEach((key) => {
+        if (columnDefinition[key] === undefined) {
+          throw new Error(`Unknown field "${key}" ` + `for ${sheetName}.`);
+        }
+
+        rows[i][columnDefinition[key]] = updates[key];
+      });
+
+      sheet.getRange(i + 2, 1, 1, rows[i].length).setValues([rows[i]]);
+
+      return rowToObject(rows[i], columnDefinition);
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Deletes a record by ID.
+ *
+ * @param {string} sheetName
+ * @param {Object} columnDefinition
+ * @param {string} id
+ * @returns {boolean}
+ */
+function deleteRecordById(sheetName, columnDefinition, id) {
+  requireValue(id, "ID");
+
+  const sheet = getSheet(sheetName);
+
+  const idColumn = columnDefinition.ID;
+
+  const rows = getSheetRows(sheetName);
+
+  for (let i = 0; i < rows.length; i++) {
+    if (String(rows[i][idColumn]) === String(id)) {
+      sheet.deleteRow(i + 2);
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Creates a temporary sheet used for CRUD testing.
+ */
+function setupCrudTestSheet() {
+  const spreadsheet = getDatabaseSpreadsheet();
+
+  const sheetName = "CRUD_Test";
+
+  let sheet = spreadsheet.getSheetByName(sheetName);
+
+  if (sheet) {
+    spreadsheet.deleteSheet(sheet);
+  }
+
+  sheet = spreadsheet.insertSheet(sheetName);
+
+  sheet.getRange(1, 1, 1, 4).setValues([["ID", "Name", "Status", "Amount"]]);
+
+  return {
+    success: true,
+    sheetName: sheetName,
+  };
+}
+
+function testCrudInsertAndRead() {
+  return handleServerRequest(() => {
+    const record = {
+      ID: generateId("TEST"),
+      NAME: "Test Timber",
+      STATUS: "active",
+      AMOUNT: 15000,
+    };
+
+    insertRecord("CRUD_Test", CRUD_TEST_COLUMNS, record);
+
+    const found = findRecordById("CRUD_Test", CRUD_TEST_COLUMNS, record.ID);
+
+    console.log(JSON.stringify(found, null, 2));
+
+    return successResponse(found, "Insert and read test passed.");
+  });
+}
+
+function testCrudUpdate() {
+  return handleServerRequest(() => {
+    const records = findRecords("CRUD_Test", CRUD_TEST_COLUMNS);
+
+    if (records.length === 0) {
+      throw new Error("No test record found.");
+    }
+
+    const record = records[0];
+
+    const updated = updateRecordById(
+      "CRUD_Test",
+      CRUD_TEST_COLUMNS,
+      record.ID,
+      {
+        STATUS: "updated",
+        AMOUNT: 25000,
+      },
+    );
+
+    console.log(JSON.stringify(updated, null, 2));
+
+    return successResponse(updated, "Update test passed.");
+  });
+}
+
+function testCrudDelete() {
+  return handleServerRequest(() => {
+    const records = findRecords("CRUD_Test", CRUD_TEST_COLUMNS);
+
+    if (records.length === 0) {
+      throw new Error("No test record found.");
+    }
+
+    const record = records[0];
+
+    const deleted = deleteRecordById("CRUD_Test", CRUD_TEST_COLUMNS, record.ID);
+
+    console.log(`Deleted: ${deleted}`);
+
+    return successResponse(deleted, "Delete test passed.");
+  });
+}
+
+function removeCrudTestSheet() {
+  const spreadsheet = getDatabaseSpreadsheet();
+
+  const sheet = spreadsheet.getSheetByName("CRUD_Test");
+
+  if (sheet) {
+    spreadsheet.deleteSheet(sheet);
+  }
+
+  return successResponse(null, "CRUD test sheet removed.");
 }
