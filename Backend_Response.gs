@@ -66,7 +66,8 @@ function handleServerRequest(callback) {
 
     return errorResponse(
       error.message || "An unexpected error occurred.",
-      "SERVER_ERROR",
+
+      error.code || "SERVER_ERROR",
     );
   }
 }
