@@ -664,3 +664,59 @@ function testPermissionEnforcement() {
 
   return response;
 }
+
+/**
+ * Requires an authenticated user to have
+ * permission for a resource/action.
+ *
+ * The role is obtained from the server-side
+ * authenticated user, never from the client.
+ *
+ * @param {string} token
+ * @param {string} resource
+ * @param {string} action
+ * @returns {Object} authenticated user
+ */
+function requireAuthenticatedPermission(token, resource, action) {
+  const user = requireAuthentication(token);
+
+  requirePermission(user.ROLE, resource, action);
+
+  return user;
+}
+
+function testAuthenticatedPermission() {
+  const loginResponse = login("admin@test.com", "Admin123!");
+
+  if (!loginResponse.success) {
+    throw new Error("Login failed.");
+  }
+
+  const token = loginResponse.data.token;
+
+  const user = requireAuthenticatedPermission(
+    token,
+    PERMISSION_RESOURCES.SALES,
+    PERMISSION_ACTIONS.CREATE,
+  );
+
+  console.log(
+    JSON.stringify(
+      {
+        user: sanitizeUser(user),
+        permission: "sales.create",
+      },
+      null,
+      2,
+    ),
+  );
+
+  return successResponse(
+    {
+      user: sanitizeUser(user),
+      permission: "sales.create",
+      allowed: true,
+    },
+    "Authenticated permission test passed.",
+  );
+}

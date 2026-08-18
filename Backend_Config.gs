@@ -34,6 +34,8 @@ const DB = {
   SETTINGS: "Settings",
 
   ACTIVITY_LOGS: "Activity_Logs",
+
+  SESSIONS: "Sessions",
 };
 
 /**
@@ -250,6 +252,15 @@ const COLUMNS = {
     DETAILS: 5,
     CREATED_AT: 6,
   },
+
+  SESSIONS: {
+    ID: 0,
+    USER_ID: 1,
+    TOKEN: 2,
+    CREATED_AT: 3,
+    EXPIRES_AT: 4,
+    STATUS: 5,
+  },
 };
 
 /**
@@ -458,4 +469,6 @@ const HEADERS = {
     "Details",
     "Created_At",
   ],
+
+  Sessions: ["ID", "User_ID", "Token", "Created_At", "Expires_At", "Status"],
 };
