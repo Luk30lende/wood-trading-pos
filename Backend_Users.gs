@@ -532,3 +532,389 @@ function testCreateUserPermission() {
     "Create user permission test passed.",
   );
 }
+
+/**
+ * Updates an existing user.
+ *
+ * Password changes are intentionally handled separately.
+ *
+ * @param {string} token
+ * @param {string} userId
+ * @param {Object} updates
+ * @returns {Object}
+ */
+function updateUser(token, userId, updates) {
+  const currentUser = getAuthenticatedUser(token);
+
+  if (!currentUser) {
+    const error = new Error("Authentication required.");
+
+    error.code = "AUTHENTICATION_REQUIRED";
+
+    throw error;
+  }
+
+  requirePermission(currentUser.ROLE, "users", "update");
+
+  requireValue(userId, "User ID");
+
+  if (!updates || typeof updates !== "object") {
+    const error = new Error("Update data is required.");
+
+    error.code = "VALIDATION_ERROR";
+
+    throw error;
+  }
+
+  const existingUser = findRecordById(DB.USERS, COLUMNS.USERS, userId);
+
+  if (!existingUser) {
+    const error = new Error("User not found.");
+
+    error.code = "USER_NOT_FOUND";
+
+    throw error;
+  }
+
+  const allowedFields = [
+    "NAME",
+    "EMAIL",
+    "PHONE",
+    "AVATAR_URL",
+    "ROLE",
+    "STATUS",
+  ];
+
+  const updateData = {};
+
+  Object.keys(updates).forEach((key) => {
+    if (!allowedFields.includes(key)) {
+      const error = new Error(
+        `Field "${key}" cannot be updated through this function.`,
+      );
+
+      error.code = "INVALID_UPDATE_FIELD";
+
+      throw error;
+    }
+
+    updateData[key] = updates[key];
+  });
+
+  if (Object.keys(updateData).length === 0) {
+    const error = new Error("No valid fields were provided for update.");
+
+    error.code = "VALIDATION_ERROR";
+
+    throw error;
+  }
+
+  // Validate email if it is being changed.
+  if (updateData.EMAIL !== undefined) {
+    const email = String(updateData.EMAIL).trim().toLowerCase();
+
+    if (!email) {
+      const error = new Error("Email cannot be empty.");
+
+      error.code = "INVALID_EMAIL";
+
+      throw error;
+    }
+
+    const emailUser = findUserByEmail(email);
+
+    if (emailUser && String(emailUser.ID) !== String(userId)) {
+      const error = new Error("A user with this email already exists.");
+
+      error.code = "EMAIL_ALREADY_EXISTS";
+
+      throw error;
+    }
+
+    updateData.EMAIL = email;
+  }
+
+  // Validate name.
+  if (updateData.NAME !== undefined) {
+    updateData.NAME = String(updateData.NAME).trim();
+
+    if (!updateData.NAME) {
+      const error = new Error("Name cannot be empty.");
+
+      error.code = "INVALID_NAME";
+
+      throw error;
+    }
+  }
+
+  // Validate role.
+  if (updateData.ROLE !== undefined) {
+    const validRoles = ["admin", "manager", "cashier", "warehouse_staff"];
+
+    updateData.ROLE = String(updateData.ROLE).trim().toLowerCase();
+
+    if (!validRoles.includes(updateData.ROLE)) {
+      const error = new Error(`Invalid role "${updateData.ROLE}".`);
+
+      error.code = "INVALID_ROLE";
+
+      throw error;
+    }
+  }
+
+  // Validate status.
+  if (updateData.STATUS !== undefined) {
+    const validStatuses = ["active", "inactive"];
+
+    updateData.STATUS = String(updateData.STATUS).trim().toLowerCase();
+
+    if (!validStatuses.includes(updateData.STATUS)) {
+      const error = new Error(`Invalid status "${updateData.STATUS}".`);
+
+      error.code = "INVALID_STATUS";
+
+      throw error;
+    }
+  }
+
+  updateData.UPDATED_AT = now();
+
+  const updatedUser = updateRecordById(
+    DB.USERS,
+    COLUMNS.USERS,
+    userId,
+    updateData,
+  );
+
+  if (!updatedUser) {
+    const error = new Error("User not found.");
+
+    error.code = "USER_NOT_FOUND";
+
+    throw error;
+  }
+
+  return sanitizeUser(updatedUser);
+}
+
+/**
+ * Public server endpoint for updating users.
+ */
+function editUser(token, userId, updates) {
+  return handleServerRequest(() => {
+    const user = updateUser(token, userId, updates);
+
+    return successResponse(user, "User updated successfully.");
+  });
+}
+
+function testUpdateUser() {
+  setupUsersTestAdmin();
+
+  const loginResponse = login("users-test-admin@test.com", "TestAdmin123!");
+
+  if (!loginResponse.success) {
+    throw new Error("Admin login failed.");
+  }
+
+  const token = loginResponse.data.token;
+
+  const usersResponse = listUsers(token);
+
+  if (!usersResponse.success || usersResponse.data.length === 0) {
+    throw new Error("Could not retrieve users.");
+  }
+
+  const testUser = usersResponse.data.find(
+    (user) => user.EMAIL === "password-reset-test@test.com",
+  );
+
+  if (!testUser) {
+    throw new Error("Test user could not be found.");
+  }
+
+  const response = editUser(token, testUser.ID, {
+    NAME: "Updated Test User",
+    PHONE: "0712345678",
+    ROLE: "cashier",
+    STATUS: "active",
+  });
+
+  console.log(JSON.stringify(response, null, 2));
+
+  if (!response.success) {
+    throw new Error("User update failed.");
+  }
+
+  if (response.data.NAME !== "Updated Test User") {
+    throw new Error("Name was not updated.");
+  }
+
+  if (response.data.PHONE !== "0712345678") {
+    throw new Error("Phone was not updated.");
+  }
+
+  if (response.data.ROLE !== "cashier") {
+    throw new Error("Role was not updated.");
+  }
+
+  if (response.data.PASSWORD_HASH !== undefined) {
+    throw new Error("Password hash was exposed.");
+  }
+
+  return successResponse(
+    {
+      updated: true,
+      userId: response.data.ID,
+    },
+    "Update user test passed.",
+  );
+}
+
+function testUpdateUserValidation() {
+  setupUsersTestAdmin();
+
+  const loginResponse = login("users-test-admin@test.com", "TestAdmin123!");
+
+  if (!loginResponse.success) {
+    throw new Error("Admin login failed.");
+  }
+
+  const token = loginResponse.data.token;
+
+  const usersResponse = listUsers(token);
+
+  if (!usersResponse.success || usersResponse.data.length < 2) {
+    throw new Error("Could not retrieve users.");
+  }
+
+  const testUser = usersResponse.data.find(
+    (user) => user.EMAIL === "password-reset-test@test.com",
+  );
+
+  if (!testUser) {
+    throw new Error("Test user could not be found.");
+  }
+
+  // 1. Duplicate email
+  const duplicateEmailResponse = editUser(token, testUser.ID, {
+    EMAIL: "admin@test.com",
+  });
+
+  console.log(
+    "Duplicate email:",
+    JSON.stringify(duplicateEmailResponse, null, 2),
+  );
+
+  if (
+    duplicateEmailResponse.success ||
+    duplicateEmailResponse.error.code !== "EMAIL_ALREADY_EXISTS"
+  ) {
+    throw new Error("Duplicate email was not rejected.");
+  }
+
+  // 2. Invalid role
+  const invalidRoleResponse = editUser(token, testUser.ID, {
+    ROLE: "superuser",
+  });
+
+  console.log("Invalid role:", JSON.stringify(invalidRoleResponse, null, 2));
+
+  if (
+    invalidRoleResponse.success ||
+    invalidRoleResponse.error.code !== "INVALID_ROLE"
+  ) {
+    throw new Error("Invalid role was not rejected.");
+  }
+
+  // 3. Invalid status
+  const invalidStatusResponse = editUser(token, testUser.ID, {
+    STATUS: "deleted",
+  });
+
+  console.log(
+    "Invalid status:",
+    JSON.stringify(invalidStatusResponse, null, 2),
+  );
+
+  if (
+    invalidStatusResponse.success ||
+    invalidStatusResponse.error.code !== "INVALID_STATUS"
+  ) {
+    throw new Error("Invalid status was not rejected.");
+  }
+
+  // 4. Non-existent user
+  const missingUserResponse = editUser(token, "USR-NONEXISTENT-123", {
+    NAME: "Should Not Exist",
+  });
+
+  console.log("Missing user:", JSON.stringify(missingUserResponse, null, 2));
+
+  if (
+    missingUserResponse.success ||
+    missingUserResponse.error.code !== "USER_NOT_FOUND"
+  ) {
+    throw new Error("Non-existent user was not rejected.");
+  }
+
+  // 5. Protected field
+  const protectedFieldResponse = editUser(token, testUser.ID, {
+    PASSWORD_HASH: "fake-hash",
+  });
+
+  console.log(
+    "Protected field:",
+    JSON.stringify(protectedFieldResponse, null, 2),
+  );
+
+  if (
+    protectedFieldResponse.success ||
+    protectedFieldResponse.error.code !== "INVALID_UPDATE_FIELD"
+  ) {
+    throw new Error("Protected field update was not rejected.");
+  }
+
+  return successResponse(
+    {
+      duplicateEmailRejected: true,
+      invalidRoleRejected: true,
+      invalidStatusRejected: true,
+      missingUserRejected: true,
+      protectedFieldRejected: true,
+    },
+    "Update user validation tests passed.",
+  );
+}
+
+function testUpdateUserPermission() {
+  const loginResponse = login(
+    "password-reset-test@test.com",
+    "TestPassword123!",
+  );
+
+  if (!loginResponse.success) {
+    throw new Error("Cashier login failed.");
+  }
+
+  const token = loginResponse.data.token;
+
+  const targetUserId = "USR-1786553888236-409179";
+
+  const response = editUser(token, targetUserId, {
+    NAME: "Unauthorized Update",
+  });
+
+  console.log(JSON.stringify(response, null, 2));
+
+  if (response.success || response.error.code !== "PERMISSION_DENIED") {
+    throw new Error("Cashier was able to update a user.");
+  }
+
+  return successResponse(
+    {
+      permissionDenied: true,
+    },
+    "Update user permission test passed.",
+  );
+}
