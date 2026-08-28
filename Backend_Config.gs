@@ -36,6 +36,8 @@ const DB = {
   ACTIVITY_LOGS: "Activity_Logs",
 
   SESSIONS: "Sessions",
+
+  PASSWORD_RESET_TOKENS: "Password_Reset_Tokens",
 };
 
 /**
@@ -261,6 +263,15 @@ const COLUMNS = {
     EXPIRES_AT: 4,
     STATUS: 5,
   },
+
+  PASSWORD_RESET_TOKENS: {
+    ID: 0,
+    USER_ID: 1,
+    TOKEN: 2,
+    EXPIRES_AT: 3,
+    USED_AT: 4,
+    CREATED_AT: 5,
+  },
 };
 
 /**
@@ -471,4 +482,13 @@ const HEADERS = {
   ],
 
   Sessions: ["ID", "User_ID", "Token", "Created_At", "Expires_At", "Status"],
+
+  Password_Reset_Tokens: [
+    "ID",
+    "User_ID",
+    "Token",
+    "Expires_At",
+    "Used_At",
+    "Created_At",
+  ],
 };

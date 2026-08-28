@@ -97,3 +97,25 @@ function migrateWoodStocksCarToShipment() {
     'Wood_Stocks "Car_ID" column renamed to "Shipment_ID".',
   );
 }
+
+function migratePasswordResetTokensSheet() {
+  const spreadsheet = getDatabaseSpreadsheet();
+
+  const sheetName = DB.PASSWORD_RESET_TOKENS;
+
+  let sheet = spreadsheet.getSheetByName(sheetName);
+
+  if (sheet) {
+    return successResponse(null, "Password reset tokens sheet already exists.");
+  }
+
+  sheet = spreadsheet.insertSheet(sheetName);
+
+  const headers = HEADERS.Password_Reset_Tokens;
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+  sheet.setFrozenRows(1);
+
+  return successResponse(null, "Password reset tokens sheet created.");
+}
