@@ -918,3 +918,298 @@ function testUpdateUserPermission() {
     "Update user permission test passed.",
   );
 }
+
+/**
+ * Deactivates an existing user.
+ *
+ * Users are not physically deleted because they may be
+ * referenced by historical records such as sales,
+ * purchases, and activity logs.
+ *
+ * @param {string} token
+ * @param {string} userId
+ * @returns {Object}
+ */
+function deactivateUser(token, userId) {
+  const currentUser = getAuthenticatedUser(token);
+
+  if (!currentUser) {
+    const error = new Error("Authentication required.");
+
+    error.code = "AUTHENTICATION_REQUIRED";
+
+    throw error;
+  }
+
+  requirePermission(currentUser.ROLE, "users", "delete");
+
+  requireValue(userId, "User ID");
+
+  const existingUser = findRecordById(DB.USERS, COLUMNS.USERS, userId);
+
+  if (!existingUser) {
+    const error = new Error("User not found.");
+
+    error.code = "USER_NOT_FOUND";
+
+    throw error;
+  }
+
+  if (String(existingUser.STATUS).toLowerCase() === "inactive") {
+    const error = new Error("User is already inactive.");
+
+    error.code = "USER_ALREADY_INACTIVE";
+
+    throw error;
+  }
+
+  const updatedUser = updateRecordById(DB.USERS, COLUMNS.USERS, userId, {
+    STATUS: "inactive",
+    UPDATED_AT: now(),
+  });
+
+  if (!updatedUser) {
+    const error = new Error("User not found.");
+
+    error.code = "USER_NOT_FOUND";
+
+    throw error;
+  }
+
+  return sanitizeUser(updatedUser);
+}
+
+/**
+ * Public server endpoint for deactivating users.
+ */
+function deactivateUserAccount(token, userId) {
+  return handleServerRequest(() => {
+    const user = deactivateUser(token, userId);
+
+    return successResponse(user, "User deactivated successfully.");
+  });
+}
+
+/**
+ * Reactivates an inactive user.
+ *
+ * @param {string} token
+ * @param {string} userId
+ * @returns {Object}
+ */
+function reactivateUser(token, userId) {
+  const currentUser = getAuthenticatedUser(token);
+
+  if (!currentUser) {
+    const error = new Error("Authentication required.");
+
+    error.code = "AUTHENTICATION_REQUIRED";
+
+    throw error;
+  }
+
+  requirePermission(currentUser.ROLE, "users", "update");
+
+  requireValue(userId, "User ID");
+
+  const existingUser = findRecordById(DB.USERS, COLUMNS.USERS, userId);
+
+  if (!existingUser) {
+    const error = new Error("User not found.");
+
+    error.code = "USER_NOT_FOUND";
+
+    throw error;
+  }
+
+  if (String(existingUser.STATUS).toLowerCase() === "active") {
+    const error = new Error("User is already active.");
+
+    error.code = "USER_ALREADY_ACTIVE";
+
+    throw error;
+  }
+
+  const updatedUser = updateRecordById(DB.USERS, COLUMNS.USERS, userId, {
+    STATUS: "active",
+    UPDATED_AT: now(),
+  });
+
+  if (!updatedUser) {
+    const error = new Error("User not found.");
+
+    error.code = "USER_NOT_FOUND";
+
+    throw error;
+  }
+
+  return sanitizeUser(updatedUser);
+}
+
+/**
+ * Public server endpoint for reactivating users.
+ */
+function reactivateUserAccount(token, userId) {
+  return handleServerRequest(() => {
+    const user = reactivateUser(token, userId);
+
+    return successResponse(user, "User reactivated successfully.");
+  });
+}
+
+function testDeactivateUser() {
+  setupUsersTestAdmin();
+
+  const loginResponse = login("users-test-admin@test.com", "TestAdmin123!");
+
+  if (!loginResponse.success) {
+    throw new Error("Admin login failed.");
+  }
+
+  const token = loginResponse.data.token;
+
+  const usersResponse = listUsers(token);
+
+  if (!usersResponse.success || usersResponse.data.length === 0) {
+    throw new Error("Could not retrieve users.");
+  }
+
+  const testUser = usersResponse.data.find(
+    (user) => user.EMAIL === "password-reset-test@test.com",
+  );
+
+  if (!testUser) {
+    throw new Error("Test user could not be found.");
+  }
+
+  const response = deactivateUserAccount(token, testUser.ID);
+
+  console.log(JSON.stringify(response, null, 2));
+
+  if (!response.success) {
+    throw new Error("User deactivation failed.");
+  }
+
+  if (response.data.STATUS !== "inactive") {
+    throw new Error("User was not marked inactive.");
+  }
+
+  if (response.data.PASSWORD_HASH !== undefined) {
+    throw new Error("Password hash was exposed.");
+  }
+
+  return successResponse(
+    {
+      deactivated: true,
+      userId: testUser.ID,
+    },
+    "Deactivate user test passed.",
+  );
+}
+
+function testInactiveUserCannotLogin() {
+  const response = login("password-reset-test@test.com", "TestPassword123!");
+
+  console.log(JSON.stringify(response, null, 2));
+
+  if (response.success) {
+    throw new Error("Inactive user was able to log in.");
+  }
+
+  if (!response.error || response.error.code !== "ACCOUNT_INACTIVE") {
+    throw new Error("Inactive user returned an unexpected error.");
+  }
+
+  return successResponse(
+    { loginBlocked: true },
+    "Inactive user login test passed.",
+  );
+}
+
+function testReactivateUser() {
+  const loginResponse = login("users-test-admin@test.com", "TestAdmin123!");
+
+  console.log(JSON.stringify(loginResponse, null, 2));
+
+  if (!loginResponse.success) {
+    throw new Error("Admin login failed.");
+  }
+
+  const adminToken = loginResponse.data.token;
+
+  const userId = "USR-1787899366216-854433";
+
+  const response = reactivateUserAccount(adminToken, userId);
+
+  console.log(JSON.stringify(response, null, 2));
+
+  if (!response.success) {
+    throw new Error("User reactivation failed.");
+  }
+
+  if (response.data.STATUS !== "active") {
+    throw new Error("User was not reactivated.");
+  }
+
+  return successResponse(
+    { reactivated: true },
+    "User reactivation test passed.",
+  );
+}
+
+function testReactivatedUserCanLogin() {
+  const response = login("password-reset-test@test.com", "TestPassword123!");
+
+  console.log(JSON.stringify(response, null, 2));
+
+  if (!response.success) {
+    throw new Error("Reactivated user could not log in.");
+  }
+
+  if (!response.data.user) {
+    throw new Error("Login succeeded but user data was not returned.");
+  }
+
+  if (response.data.user.STATUS !== "active") {
+    throw new Error("Reactivated user is not active after login.");
+  }
+
+  return successResponse(
+    { loginSuccessful: true },
+    "Reactivated user login test passed.",
+  );
+}
+
+function testReactivateUserPermission() {
+  const loginResponse = login(
+    "password-reset-test@test.com",
+    "TestPassword123!",
+  );
+
+  console.log(JSON.stringify(loginResponse, null, 2));
+
+  if (!loginResponse.success) {
+    throw new Error("Cashier login failed.");
+  }
+
+  const cashierToken = loginResponse.data.token;
+
+  const targetUserId = "USR-1787915654667-399085";
+
+  const response = reactivateUserAccount(cashierToken, targetUserId);
+
+  console.log(JSON.stringify(response, null, 2));
+
+  if (response.success) {
+    throw new Error("Cashier was able to reactivate a user.");
+  }
+
+  if (!response.error || response.error.code !== "PERMISSION_DENIED") {
+    throw new Error("Cashier returned an unexpected error.");
+  }
+
+  return successResponse(
+    { permissionDenied: true },
+    "Reactivate user permission test passed.",
+  );
+}
